@@ -1039,7 +1039,8 @@
      */
     async function callGeminiAPI(promptText, expectJson = false) {
       // Sanitize key to remove any hidden spaces or line breaks pasted from iOS clipboard
-      const cleanKey = (geminiApiKey || "").replace(/[^a-zA-Z0-9_-]/g, "");
+      //const cleanKey = (geminiApiKey || "").replace(/[^a-zA-Z0-9_-]/g, "");
+      const cleanKey = (geminiApiKey || "").replace(/\s+/g, "");
       if (cleanKey.length < 10) {
         openSettings();
         throw new Error("Please enter your Gemini API Key in Settings first.");
@@ -1315,7 +1316,7 @@ Provide a direct, concrete, quantitative executive answer in 3 to 5 crisp senten
       document.getElementById("settingsModal").classList.remove("open");
     }
     function saveGeminiKey() {
-      geminiApiKey = document.getElementById("apiKeyInput").value.replace(/[^a-zA-Z0-9_-]/g, "");
+      geminiApiKey = document.getElementById("apiKeyInput").value.replace(/\s+/g, "");
       SafeStorage.set("fs_gemini_key", geminiApiKey);
       updateKeyButtonStatus();
       closeSettings();
@@ -1323,7 +1324,7 @@ Provide a direct, concrete, quantitative executive answer in 3 to 5 crisp senten
     }
     async function testGeminiKey() {
       const msgEl = document.getElementById("keyDiagnosticMsg");
-      geminiApiKey = document.getElementById("apiKeyInput").value.replace(/[^a-zA-Z0-9_-]/g, "");
+      geminiApiKey = document.getElementById("apiKeyInput").value.replace(/\s+/g, "");
       msgEl.style.color = "#38bdf8";
       msgEl.innerText = "Testing connection to Gemini API...";
       try {
