@@ -3,25 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <!-- 
-    VIEWPORT CONFIGURATION FOR iOS PWA:
-    - viewport-fit=cover: Extends the app background behind the iPhone Notch / Dynamic Island and Home Indicator.
-    - user-scalable=no, maximum-scale=1.0: Prevents accidental pinch-zooming or double-tap zooming so it feels like a native app.
+    ==========================================================================
+    iOS PWA VIEWPORT & META CONFIGURATION
+    - viewport-fit=cover: Extends the app background behind the iPhone Notch / Dynamic Island and Home Indicator bar.
+    - user-scalable=no, maximum-scale=1.0: Disables pinch-to-zoom and double-tap zoom so the interface behaves like a native mobile binary.
+    ==========================================================================
   -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>FreightShorts 6.2 • Executive AI</title>
+  <title>FreightShorts 6.3 • Executive AI</title>
 
-  <!-- APPLE STANDALONE WEB APP META TAGS (Enables full-screen launch from iPhone Home Screen without Safari UI) -->
+  <!-- Apple Standalone Web App Meta Tags (Enables full-screen launch from iPhone Home Screen without Safari toolbars) -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="FreightShorts" />
   <meta name="theme-color" content="#090d16" />
 
-  <!-- Populated dynamically on boot by our Canvas Icon Generator at the bottom of the script -->
+  <!-- Populated dynamically on boot by the HTML5 Canvas Icon Generator in Module 12 -->
   <link id="appleTouchIcon" rel="apple-touch-icon" href="" />
 
   <style>
     /* ==========================================================================
-       1. DESIGN TOKENS & iOS SAFE-AREA VARIABLES
+       1. DESIGN TOKENS & iOS HARDWARE SAFE-AREA VARIABLES
        ========================================================================== */
     :root {
       --bg-base: #090d16;                  /* Deepest background layer */
@@ -37,7 +39,7 @@
       --text-secondary: #cbd5e1;
       --text-muted: #94a3b8;
 
-      /* Reads hardware safe areas on iPhone (Dynamic Island at top, Home Bar at bottom) */
+      /* Reads hardware safe areas on iPhone (Dynamic Island at top, Home Indicator bar at bottom) */
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
@@ -131,7 +133,7 @@
       border-radius: 8px; font-size: 12px; font-weight: 700;
       cursor: pointer; display: flex; align-items: center; gap: 4px;
     }
-    /* Visual confirmation when Gemini API key is configured */
+    /* Visual confirmation badge when a valid Gemini API key is stored locally */
     .hdr-btn.ai-ready {
       border-color: rgba(34, 197, 94, 0.5);
       color: #4ade80;
@@ -416,7 +418,7 @@
     .chat-input-bar {
       display: flex; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border);
     }
-    /* CRITICAL iOS FIX: font-size: 16px prevents iOS Safari from auto-zooming the page when focusing an input */
+    /* CRITICAL iOS SAFARI FIX: font-size: 16px prevents iOS Safari from auto-zooming the viewport when focusing an input */
     .chat-input {
       flex: 1; background: #1e293b; border: 1px solid var(--border);
       border-radius: 10px; padding: 11px 13px; color: #ffffff;
@@ -472,7 +474,7 @@
   <header class="top-header">
     <div class="brand-wrap">
       <div class="live-dot"></div>
-      <div class="brand-title">FREIGHT<span>SHORTS</span> 6.2</div>
+      <div class="brand-title">FREIGHT<span>SHORTS</span> 6.3</div>
     </div>
     <div class="header-controls">
       <!-- Domain Academy Complexity Tier Selector -->
@@ -481,7 +483,7 @@
         <option value="301">🎓 Tier 301</option>
         <option value="401">🎓 Tier 401</option>
       </select>
-      <!-- On-Demand Gemini Card Synthesis Button -->
+      <!-- On-Demand Gemini Card Synthesis Trigger -->
       <button class="hdr-btn" id="aiSynthBtn" onclick="synthesizeCurrentCard(true)">✨ AI</button>
       <!-- Local API Key Configuration Modal Trigger -->
       <button class="hdr-btn" id="settingsBtn" onclick="openSettings()">⚙️ Key</button>
@@ -505,7 +507,7 @@
 
   <!-- 3. Main Swipable Card Deck Container -->
   <main id="deck">
-    <div class="loader">Loading FreightShorts 6.2 Executive Feed...</div>
+    <div class="loader">Loading FreightShorts 6.3 Executive Feed...</div>
   </main>
 
   <!-- 4. Floating One-Handed Thumb Dock -->
@@ -530,26 +532,20 @@
     <div class="sheet-content" id="sheetContent"></div>
   </section>
 
-  <!-- 6. Gemini API Key & Diagnostics Modal -->
+  <!-- 6. Gemini API Key & Auto-Discovery Diagnostics Modal -->
   <div class="modal-wrap" id="settingsModal">
     <div class="modal-card">
       <div class="modal-title">🔑 Gemini AI Configuration</div>
       <div class="modal-sub">
-        Paste your Google Gemini API Key to enable real-time Level 2 synthesis and interactive Q&A. Stored strictly in your device's local storage.
+        Paste your Google Gemini API Key (`AQ...` or `AIzaSy...`). The app queries Google's `ListModels` endpoint to auto-discover the exact active model enabled on your account.
       </div>
-      <input type="password" id="apiKeyInput" class="key-input" placeholder="AIzaSy..." autocomplete="off" />
-      <div id="keyDiagnosticMsg" style="font-size:12px; color:#94a3b8; margin-bottom:10px;"></div>
+      <input type="password" id="apiKeyInput" class="key-input" placeholder="Paste API key here..." autocomplete="off" />
+      <div id="keyDiagnosticMsg" style="font-size:12px; color:#94a3b8; margin-bottom:10px; word-break:break-word;"></div>
       <div class="modal-actions">
-        <button class="m-btn m-btn-sec" onclick="testGeminiKey()">Test Key</button>
+        <button class="m-btn m-btn-sec" onclick="testGeminiKey()">Test & Auto-Discover Model</button>
         <button class="m-btn m-btn-primary" onclick="saveGeminiKey()">Save & Close</button>
       </div>
       <hr style="border:none; border-top:1px solid var(--border); margin:16px 0;" />
-      <div class="modal-title" style="font-size:14px;">📱 Install on iPhone</div>
-      <div class="modal-sub" style="margin-bottom:8px;">
-        1. Open this HTTPS URL in <strong>Safari</strong>.<br/>
-        2. Tap the <strong>Share</strong> button (square with ↑ arrow).<br/>
-        3. Tap <strong>Add to Home Screen</strong>, launch from Home Screen, and paste your key.
-      </div>
       <button class="m-btn m-btn-sec" style="width:100%;" onclick="closeSettings()">Close Window</button>
     </div>
   </div>
@@ -562,7 +558,7 @@
     /**
      * SafeStorage wraps window.localStorage in a try/catch with an in-memory fallback.
      * Prevents iOS Safari Private Browsing or strict file:// sandboxes from throwing
-     * uncaught QuotaExceededError / SecurityError exceptions.
+     * uncaught QuotaExceededError or SecurityError exceptions.
      */
     const SafeStorage = {
       mem: {},
@@ -577,7 +573,7 @@
     };
 
     /**
-     * Displays a temporary non-blocking status or error banner at the top of the screen.
+     * Displays a temporary non-blocking status or error banner at the top of the viewport.
      */
     let toastTimer = null;
     function showToast(msg, isError = false) {
@@ -595,11 +591,11 @@
     }
 
     /* ==========================================================================
-       MODULE 2: DATA SOURCES, GEMINI MODEL FALLBACKS & 3-TIER ACADEMY CURRICULUM
+       MODULE 2: LIVE RSS SOURCES & 3-TIER EXECUTIVE ACADEMY CURRICULUM
        ========================================================================== */
 
     /**
-     * Live RSS feeds fetched in parallel via the rss2json CORS proxy.
+     * Multi-source industry RSS feeds fetched concurrently via rss2json CORS proxy.
      */
     const MULTI_SOURCES = [
       { name: "FreightWaves", url: "https://www.freightwaves.com/feed" },
@@ -607,16 +603,6 @@
       { name: "Overdrive", url: "https://www.overdriveonline.com/rss" },
       { name: "Supply Chain Dive", url: "https://www.supplychaindive.com/feeds/news/" },
       { name: "On The Seams", url: "https://ontheseams.substack.com/feed" }
-    ];
-
-    /**
-     * Ordered list of Gemini models. If the primary model returns a 404/400 on a given
-     * API key tier, callGeminiAPI() automatically falls back to the next model.
-     */
-    const GEMINI_MODELS = [
-      "gemini-2.5-flash",
-      "gemini-2.0-flash",
-      "gemini-1.5-flash"
     ];
 
     /**
@@ -721,6 +707,7 @@
        ========================================================================== */
     let currentTier = SafeStorage.get("fs_tier") || "201";
     let geminiApiKey = SafeStorage.get("fs_gemini_key") || "";
+    let cachedActiveModel = SafeStorage.get("fs_active_model") || "";
     let masterDeck = [];         // Full combined list of live news + interleaved Academy slides
     let filteredArticles = [];   // Currently active subset based on selected Pillar filter chip
     let currentIndex = 0;        // Active card index in filteredArticles
@@ -1028,64 +1015,102 @@
     }
 
     /* ==========================================================================
-       MODULE 7: GEMINI API ENGINE (CORS-Preflight Bypass + Multi-Model Fallback)
+       MODULE 7: SELF-DISCOVERING GEMINI API ENGINE (Calls ListModels Automatically)
        ========================================================================== */
 
     /**
-     * Calls the Google Gemini REST API directly from the client browser.
-     * - Strips invisible clipboard whitespace/newlines from the API key.
-     * - Uses 'text/plain;charset=utf-8' header to skip CORS OPTIONS preflight blocks on WebKit.
-     * - Automatically iterates through GEMINI_MODELS if a model endpoint returns 404/400.
+     * Queries Google's v1beta/models endpoint to dynamically discover which exact
+     * model names are enabled on the user's API key and support generateContent.
+     * Prevents 404 Model Not Found errors when Google updates or retires model versions.
+     */
+    async function discoverAvailableModel(cleanKey) {
+      if (cachedActiveModel) return cachedActiveModel;
+
+      const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(cleanKey)}`;
+      const res = await fetch(listUrl);
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error((data.error && data.error.message) || `ListModels HTTP ${res.status}`);
+      }
+
+      // Filter only models that support generateContent
+      const supported = (data.models || []).filter(m =>
+        Array.isArray(m.supportedGenerationMethods) &&
+        m.supportedGenerationMethods.includes("generateContent")
+      );
+
+      if (!supported.length) {
+        throw new Error("No models supporting generateContent found for this API key.");
+      }
+
+      // Prioritize fast, modern text/multimodal models (Flash 3 -> Flash 2.5 -> Flash 2.0 -> any Flash -> Pro)
+      const preferredOrder = ["gemini-3", "gemini-2.5-flash", "gemini-2.0-flash", "flash", "pro"];
+      for (const pref of preferredOrder) {
+        const match = supported.find(m =>
+          m.name.toLowerCase().includes(pref) &&
+          !m.name.includes("vision") &&
+          !m.name.includes("tts") &&
+          !m.name.includes("image") &&
+          !m.name.includes("embedding")
+        );
+        if (match) {
+          cachedActiveModel = match.name; // Formatted by Google as "models/gemini-..."
+          SafeStorage.set("fs_active_model", cachedActiveModel);
+          return cachedActiveModel;
+        }
+      }
+
+      cachedActiveModel = supported[0].name;
+      SafeStorage.set("fs_active_model", cachedActiveModel);
+      return cachedActiveModel;
+    }
+
+    /**
+     * Calls the Google Gemini REST API using the auto-discovered model path.
+     * Preserves periods (.) in modern 'AQ.' API keys while stripping whitespace.
      */
     async function callGeminiAPI(promptText, expectJson = false) {
-      // Sanitize key to remove any hidden spaces or line breaks pasted from iOS clipboard
-      //const cleanKey = (geminiApiKey || "").replace(/[^a-zA-Z0-9_-]/g, "");
+      // Strip only whitespace so the period in 'AQ.Ab8...' keys stays intact
       const cleanKey = (geminiApiKey || "").replace(/\s+/g, "");
       if (cleanKey.length < 10) {
         openSettings();
         throw new Error("Please enter your Gemini API Key in Settings first.");
       }
 
-      let lastErr = null;
-      for (const modelName of GEMINI_MODELS) {
-        try {
-          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${cleanKey}`;
-          const payload = {
-            contents: [{ role: "user", parts: [{ text: promptText }] }],
-            generationConfig: {
-              temperature: 0.25
-            }
-          };
-          if (expectJson) {
-            payload.generationConfig.responseMimeType = "application/json";
-          }
+      const modelPath = await discoverAvailableModel(cleanKey);
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/${modelPath}:generateContent?key=${encodeURIComponent(cleanKey)}`;
 
-          // Using text/plain avoids triggering a CORS preflight OPTIONS request on strict networks
-          const res = await fetch(endpoint, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify(payload)
-          });
-
-          const data = await res.json();
-          if (!res.ok) {
-            lastErr = new Error((data.error && data.error.message) || `HTTP ${res.status}`);
-            continue; // Try next fallback model in GEMINI_MODELS
-          }
-
-          const rawOut = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-          if (!rawOut) throw new Error("Empty response from model.");
-
-          if (expectJson) {
-            const cleaned = rawOut.replace(/```json/gi, "").replace(/```/g, "").trim();
-            return JSON.parse(cleaned);
-          }
-          return rawOut;
-        } catch (err) {
-          lastErr = err;
-        }
+      const payload = {
+        contents: [{ parts: [{ text: promptText }] }],
+        generationConfig: { temperature: 0.25 }
+      };
+      if (expectJson) {
+        payload.generationConfig.responseMimeType = "application/json";
       }
-      throw lastErr || new Error("Network or API connection failed.");
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        // Clear cached model if an error occurs so the next attempt re-runs ListModels discovery
+        cachedActiveModel = "";
+        SafeStorage.set("fs_active_model", "");
+        throw new Error(`[${modelPath}] ${(data.error && data.error.message) || `HTTP ${res.status}`}`);
+      }
+
+      const rawOut = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      if (!rawOut) throw new Error("Empty response from model.");
+
+      if (expectJson) {
+        const cleaned = rawOut.replace(/```json/gi, "").replace(/```/g, "").trim();
+        return JSON.parse(cleaned);
+      }
+      return rawOut;
     }
 
     /**
@@ -1140,7 +1165,7 @@ Content: ${item.rawText || item.summary}`;
         if (document.getElementById("bottomSheet").classList.contains("open")) {
           renderSheetBody();
         }
-        showToast("✨ Synthesized with Gemini AI");
+        showToast(`✨ Synthesized via ${cachedActiveModel.replace('models/','')}`);
       } catch (err) {
         showToast(`AI Error: ${err.message}`, true);
       } finally {
@@ -1295,7 +1320,7 @@ Provide a direct, concrete, quantitative executive answer in 3 to 5 crisp senten
         chatHistory[item.id].pop();
         chatHistory[item.id].push({
           role: "ai",
-          text: `⚠️ Gemini API Error: ${err.message}. Tap the ⚙️ Key button in the top bar to verify your API key.`
+          text: `⚠️ Gemini API Error: ${err.message}`
         });
       }
       renderSheetBody();
@@ -1304,33 +1329,36 @@ Provide a direct, concrete, quantitative executive answer in 3 to 5 crisp senten
     }
 
     /* ==========================================================================
-       MODULE 9: API KEY SETTINGS & CONNECTION DIAGNOSTICS
+       MODULE 9: API KEY SETTINGS & AUTO-DISCOVERY DIAGNOSTICS
        ========================================================================== */
 
     function openSettings() {
       document.getElementById("apiKeyInput").value = geminiApiKey;
-      document.getElementById("keyDiagnosticMsg").innerText = "";
+      document.getElementById("keyDiagnosticMsg").innerText = cachedActiveModel ? `Active model: ${cachedActiveModel}` : "";
       document.getElementById("settingsModal").classList.add("open");
     }
     function closeSettings() {
       document.getElementById("settingsModal").classList.remove("open");
     }
     function saveGeminiKey() {
+      // Strip whitespace only, preserving the dot (.) in modern AQ. keys
       geminiApiKey = document.getElementById("apiKeyInput").value.replace(/\s+/g, "");
+      cachedActiveModel = "";
       SafeStorage.set("fs_gemini_key", geminiApiKey);
       updateKeyButtonStatus();
       closeSettings();
-      showToast("API Key saved locally on this device.");
+      showToast("API Key saved locally.");
     }
     async function testGeminiKey() {
       const msgEl = document.getElementById("keyDiagnosticMsg");
       geminiApiKey = document.getElementById("apiKeyInput").value.replace(/\s+/g, "");
+      cachedActiveModel = "";
       msgEl.style.color = "#38bdf8";
-      msgEl.innerText = "Testing connection to Gemini API...";
+      msgEl.innerText = "Querying ListModels & testing connection...";
       try {
         const reply = await callGeminiAPI("Reply with the exact words: Connection Verified.", false);
         msgEl.style.color = "#4ade80";
-        msgEl.innerText = `✅ Success: ${reply.slice(0, 40)}`;
+        msgEl.innerText = `✅ Connected via ${cachedActiveModel}: ${reply.slice(0, 35)}`;
         SafeStorage.set("fs_gemini_key", geminiApiKey);
         updateKeyButtonStatus();
       } catch (err) {
@@ -1453,8 +1481,8 @@ Provide a direct, concrete, quantitative executive answer in 3 to 5 crisp senten
     }
 
     /**
-     * Dynamically draws an 180x180 PNG icon on an HTML5 canvas and binds it to
-     * <link rel="apple-touch-icon"> so the app gets a crisp custom icon on the iPhone Home Screen.
+     * Dynamically renders a 180x180 PNG icon onto an offscreen HTML5 canvas and binds it to
+     * <link rel="apple-touch-icon"> so the app displays a sharp custom icon on the iPhone Home Screen.
      */
     (function initIcon() {
       try {
